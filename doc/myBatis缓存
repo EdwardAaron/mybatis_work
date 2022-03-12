@@ -1,0 +1,7 @@
+一级缓存是sqlSession级别的，默认开启
+    :缓存失效情况
+        1 sqlSession 执行了增删该
+        2 sqlSession.clearCache
+二级缓存是sqlSessionFactory级别，默认不开启
+    sqlSession提交或关闭的时候会把缓存上传到sqlSessionFactory缓存
+    注意实体类必须序列化

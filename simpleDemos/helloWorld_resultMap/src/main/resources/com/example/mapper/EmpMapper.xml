@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--
+    多对一关系
+        getEmpAndDept  联机处理
+        getEmpAndDept2 <association> 处理
+        getEmpAndDeptByStepOne 分步处理
+-->
+<mapper namespace="com.example.mapper.EmpMapper">
+    <!--    List<Emp> getEmpsByDid(@Param("did") Integer did);-->
+    <select id="getEmpsByDid" resultType="Emp">
+        select *
+        from t_emp
+        where did = #{did};
+    </select>
+    <!--
+        type:实体类型
+            id:主键映射
+            result:普通属性映射
+    -->
+    <resultMap id="getAllEmpMap" type="Emp">
+        <id property="eid" column="eid"/>
+        <result property="empName" column="emp_name"/>
+        <result property="age" column="age"/>
+        <result property="sex" column="sex"/>
+        <result property="email" column="email"/>
+    </resultMap>
+    <!--    List<Emp> getAllEmpOld();-->
+    <select id="getAllEmpOld" resultType="Emp">
+        <!--
+        是为在myBatis-confg中设置了mapUnderscoreToCamelCase，因此不需要这样写了
+        select eid,
+        emp_name
+        empName, age, sex, email
+        from t_emp;
+        -->
+        select * from t_emp;
+    </select>
+    <!--    List<Emp> getAllEmp();-->
+    <select id="getAllEmp" resultMap="getAllEmpMap">
+        select *
+        from t_emp;
+    </select>
+
+    <resultMap id="getEmpAndDeptOne" type="Emp">
+        <id property="eid" column="eid"/>
+        <result property="empName" column="emp_name"/>
+        <result property="age" column="age"/>
+        <result property="sex" column="sex"/>
+        <result property="email" column="email"/>
+        <!--级联映射处理多对一关系-->
+        <result property="dept.did" column="did"/>
+        <result property="dept.deptName" column="dept_name"/>
+    </resultMap>
+    <!--    Emp getEmpAndDept(@Param("eid") Integer eid);-->
+    <select id="getEmpAndDept" resultMap="getEmpAndDeptOne">
+        select *
+        from t_emp
+                 left join t_dept on t_emp.did = t_dept.did
+        where t_emp.eid = #{eid}
+    </select>
+
+    <resultMap id="getEmpAndDeptTwo" type="Emp">
+        <id property="eid" column="eid"/>
+        <result property="empName" column="emp_name"/>
+        <result property="age" column="age"/>
+        <result property="sex" column="sex"/>
+        <result property="email" column="email"/>
+        <!--多对一关系-->
+        <association property="dept" javaType="Dept">
+            <id property="did" column="did"/>
+            <result property="deptName" column="dept_Name"/>
+        </association>
+    </resultMap>
+    <!--    Emp getEmpAndDept2(@Param("eid") Integer eid);-->
+    <select id="getEmpAndDept2" resultMap="getEmpAndDeptTwo">
+        select *
+        from t_emp
+                 left join t_dept on t_emp.did = t_dept.did
+        where t_emp.eid = #{eid}
+    </select>
+
+    <resultMap id="getEmpAndDeptByStepOne" type="Emp">
+        <id property="eid" column="eid"/>
+        <result property="empName" column="emp_name"/>
+        <result property="age" column="age"/>
+        <result property="sex" column="sex"/>
+        <result property="email" column="email"/>
+        <!--
+            column 该列的值传递到  getById
+            fetchType="eager" 立即加载，覆盖全局设置
+        -->
+        <association property="dept"
+                     select="com.example.mapper.DeptMapper.getById"
+                     column="did"
+        />
+    </resultMap>
+    <!--    Emp getEmpAndDeptByStepOne(@Param("eid") Integer eid);-->
+    <select id="getEmpAndDeptByStepOne" resultMap="getEmpAndDeptByStepOne">
+        select *
+        from t_emp
+        where eid = #{eid};
+    </select>
+
+</mapper>

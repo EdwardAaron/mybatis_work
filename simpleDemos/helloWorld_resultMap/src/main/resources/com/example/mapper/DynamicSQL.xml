@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--
+    getEmpsByCondition :if 标签
+            sql标签 sql 片段
+    getEmpsByCondition2 :where 标签 动态生成where，去掉前面无用 and or where 等关键字
+    getEmpsByCondition3 :trim 标签
+        prefix|suffix:前|后添加指定内容
+        prefixOverride|suffixOverride:前|后去掉指定内容
+    getEmpsByCondition4 :chose ,when otherwise
+        相当于 if else ...  if else 只匹配一个条件
+    deleteManyByArray :forEach 批量删除 注意数组为空的时候，会报错
+    inertManyEmps :forEach 批量增加
+
+-->
+<mapper namespace="com.example.mapper.DynamicSQL">
+    <sql id="empCloumn">eid,emp_name,age,sex,email</sql>
+    <!--    List<Emp> getEmpsByCondition(Emp emp);-->
+    <select id="getEmpsByCondition" resultType="Emp">
+        select <include refid="empCloumn"/> from t_emp where 1=1
+        <if test="empName!=null and empName!=''">
+            and emp_name=#{empName}
+        </if>
+        <if test="age!=null and age!=''">
+            and age=#{age}
+        </if>
+        <if test="sex!=null and sex!=''">
+            and sex=#{sex}
+        </if>
+        <if test="email!=null and email!=''">
+            and email=#{email}
+        </if>
+    </select>
+    <!--    List<Emp> getEmpsByCondition2(Emp emp);-->
+    <select id="getEmpsByCondition2" resultType="Emp">
+        select * from t_emp
+        <where>
+            <if test="empName!=null and empName!=''">
+                and emp_name=#{empName}
+            </if>
+            <if test="age!=null and age!=''">
+                and age=#{age}
+            </if>
+            <if test="sex!=null and sex!=''">
+                and sex=#{sex}
+            </if>
+            <if test="email!=null and email!=''">
+                and email=#{email}
+            </if>
+        </where>
+    </select>
+
+    <!--   List<Emp> getEmpsByCondition3(Emp emp); -->
+    <select id="getEmpsByCondition3" resultType="Emp">
+        select * from t_emp
+        <trim prefix="where" prefixOverrides="and|or">
+            <if test="empName!=null and empName!=''">
+                and emp_name=#{empName}
+            </if>
+            <if test="age!=null and age!=''">
+                and age=#{age}
+            </if>
+            <if test="sex!=null and sex!=''">
+                and sex=#{sex}
+            </if>
+            <if test="email!=null and email!=''">
+                and email=#{email}
+            </if>
+        </trim>
+    </select>
+
+    <!--    List<Emp> getEmpsByCondition4(Emp emp);-->
+    <select id="getEmpsByCondition4" resultType="Emp">
+        select * from t_emp
+        <where>
+            <choose>
+                <when test="empName!=null and empName!=''">
+                    emp_name=#{empName}
+                </when>
+                <when test="age!=null and age!=''">
+                    age=#{age}
+                </when>
+                <when test="sex!=null and sex!=''">
+                    sex=#{sex}
+                </when>
+                <when test="email!=null and email!=''">
+                    email=#{email}
+                </when>
+                <otherwise>
+                    did=1
+                </otherwise>
+            </choose>
+        </where>
+    </select>
+
+    <!--    Integer deleteManyByArray(Integer[] eids);-->
+    <delete id="deleteManyByArray">
+        delete from t_emp where
+        <!--            <foreach collection="eids" item="eid" separator="or">-->
+        <!--                eid=#{eid}-->
+        <!--            </foreach>-->
+        delete from t_emp where eid in (
+        <foreach collection="eids" item="eid" separator=",">
+            #{eid}
+        </foreach>
+        )
+    </delete>
+    <!--    int inertManyEmps(@Param("emps") List<Emp> emps);-->
+    <insert id="inertManyEmps">
+        insert into t_emp values
+        <foreach collection="emps" item="emp" separator=",">
+            (null,#{emp.empName},#{emp.age},#{emp.sex},#{emp.email},null)
+        </foreach>
+    </insert>
+</mapper>
